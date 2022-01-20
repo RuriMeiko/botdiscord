@@ -22,8 +22,11 @@ async def newbrower(username,password):
     await page.click('button[type="submit"]')
     await page.waitFor('button[data-testid="gdpr-accept-button"]')
     await page.click('button[data-testid="gdpr-accept-button"]')
+    await page.goto('https://my.replika.ai')
     print("login Done")
     pages = await browser.pages()
+    page=pages[0]
+    await page.close()
     #endpoint = browser.wsEndpoint()
     return True
 
