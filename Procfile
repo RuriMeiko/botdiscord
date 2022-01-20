@@ -1,1 +1,1 @@
-worker: $ Yoosungreplika.py
+worker: Yoosungreplika.py
