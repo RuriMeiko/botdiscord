@@ -1,1 +1,1 @@
-worker: Yoosungreplika.py
+worker: python Yoosungreplika.py
