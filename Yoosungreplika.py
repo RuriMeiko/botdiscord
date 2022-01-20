@@ -11,7 +11,7 @@ pages=[]
 async def newbrower(username,password):
     global pages
     global browser
-    browser = await pyppeteer.launch(autoClose = False, args=['--no-sandbox'], headless=False)
+    browser = await pyppeteer.launch(autoClose = False, args=['--no-sandbox'], headless=True)
     page = await browser.newPage()
     await page.goto('https://my.replika.ai/login')
     await page.waitFor('input[id=emailOrPhone]')
