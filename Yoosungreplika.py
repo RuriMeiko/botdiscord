@@ -1,17 +1,24 @@
 #pip install websocket-client
+#pip uninstall websocket-client
+#pip install googletrans==3.1.0a0
+#pip uninstall googletrans
 import discord
 import os
 from dotenv import load_dotenv
 import pyppeteer
 from websocket import create_connection
 import json
-s=True
+import checks
+from translate import Translator
+import googletrans 
+import keep_alive
+keep_alive.keep_alive()   
 browser=""
 pages=[]
 async def newbrower(username,password):
     global pages
     global browser
-    browser = await pyppeteer.launch(autoClose = False, args=['--no-sandbox'], headless=True)
+    browser = await pyppeteer.launch(autoClose = False, args=['--no-sandbox'], headless=False)
     page = await browser.newPage()
     await page.goto('https://my.replika.ai/login')
     await page.waitFor('input[id=emailOrPhone]')
@@ -27,15 +34,12 @@ async def newbrower(username,password):
     pages = await browser.pages()
     page=pages[0]
     await page.close()
+    pages = await browser.pages()
     #endpoint = browser.wsEndpoint()
     return True
 
 async def sendtext(text):
-    global s
-    if s == True:
-        await newbrower("chandoralong+1@gmail.com","123456789*12")
-    s=False
-    page =  pages[1]
+    page =  pages[0]
     print("user:", text)
     ws = create_connection("wss://ws.replika.com/v17")
     try:
@@ -64,9 +68,10 @@ async def sendtext(text):
             result = json.loads(ws.recv())
             if result['event_name'] == 'message':
                 a = result['payload']['content']['text']
-                ws.settimeout(3)
+                ws.settimeout(4)
                 textchat.append(a)
         except:
+            print("end mess")
             break
     print("return: ", textchat)
     ws.close()
@@ -76,28 +81,50 @@ async def sendtext(text):
 
 client = discord.Client()
 
-icon = [">///<","><",">A<",">w<",">///<)",">///<) ❤",">///<)❤",":>",":<","<:",">:",">p<",">u<",">o<",">//<",">/<",">///<) ❤❤",">///<)❤❤","<('-')",">A<",">q<",">p<",">w<",">//w//<",">//w//<)",">x<)",">x<",">x<) ❤",">:(",">:l",">:)",">:3",">:(",">:0",">:I",">:l",">:3",">:0"]
+icon = [">///<","><",">A<",">w<",">///<)",">///<) ❤",">///<)❤",":>",":<","<:",">:",">p<",">u<",">o<",">//<",">/<",">///<) ❤❤",">///<)❤❤","<('-')",">A<",">q<",">p<",">w<",">//w//<",">//w//<)",">x<)",">x<",">x<) ❤",">:(",">:l",">:)",">:3",">:(",">:0",">:I",">:l",">:3",">:0","??"]
+ab=""
+ts = Translator(provider='mymemory', to_lang='vi',from_lang='en',email='chandoralong@gmail.com')
+tss = Translator(provider='mymemory', to_lang='en',from_lang='vi',email='chandoralong@gmail.com')
+
 
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+    await newbrower("chandoralong+1@gmail.com","123456789*12")
 
 
 @client.event
 async def on_message(message):
+    eng=False
     if message.author == client.user:
         return
-
-    if (("YOOSUNG" in message.content.upper()) or message.content.startswith('>')) and message.content not in icon:
+    if (("YOOSUNG" in message.content.upper()) or message.content.startswith('>')) and message.content not in icon and checks.checkstring(message.content,">") == 1:
         async with message.channel.typing():
+            global ab
             if message.content.startswith('>'):
                 a = message.content[1:]
             else:
                 a = message.content
-            texxt = await sendtext(a)
+            if googletrans.Translator().detect(a).lang == 'en':
+                eng=True
+            if eng==False:
+                ab=tss.translate(a).replace("&#39;","'").replace('&quot;','"')
+                print("input EN: ",ab)
+            else: ab=a
+            texxt = await sendtext(ab)
         for i in texxt:
-            if i != a:
-                await message.channel.send(i)
+            if str(i) != ab:
+                if eng==False:
+                    print("Return VI:",ts.translate(i))
+                    a1 = ts.translate(i).replace("Bạn", "Em").replace("bạn", "em").replace("BẠN", "EM").replace("Tôi", "Anh").replace("tôi", "anh").replace("TÔI", "ANH")
+                    if a1 == "Em yêu anh":
+                        a1 = "Anh yêu em"
+                else:
+                    a1=str(i)
+                await message.channel.send(a1)
+
+       
 print("Running now")
 load_dotenv('.env')
 client.run(os.getenv('TOKEN'))
+
